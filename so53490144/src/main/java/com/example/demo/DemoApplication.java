@@ -36,6 +36,7 @@ public class DemoApplication {
 			EntityManager entityManager = factory.createEntityManager();
 			EntityTransaction transaction = entityManager.getTransaction();
 			transaction.begin();
+			entityManager.persist(new Customer("Tom", "Cruise"));
 			entityManager.persist(new Customer("Jack", "Bauer"));
 			entityManager.persist(new Customer("Chloe", "O'Brian"));
 			entityManager.persist(new Customer("David", "Palmer"));

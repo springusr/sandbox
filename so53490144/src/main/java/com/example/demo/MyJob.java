@@ -16,8 +16,6 @@
 
 package com.example.demo;
 
-import javax.persistence.EntityManagerFactory;
-
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -27,16 +25,18 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.listener.ChunkListenerSupport;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import javax.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableBatchProcessing
 public class MyJob {
 
-	private static final int PAGE_SIZE = 4;
+	private static final int PAGE_SIZE = 1;
 
-	private static final int CHUNK_SIZE = 2;
+	private static final int CHUNK_SIZE = 1;
 
 	private final JobBuilderFactory jobs;
 
@@ -47,14 +47,16 @@ public class MyJob {
 		this.steps = steps;
 	}
 
+	@Autowired
+	MyItemProcessor myItemProcessor;
+
 	@Bean
 	public ChattyJpaPagingItemReader<Customer> itemReader(EntityManagerFactory entityManagerFactory) {
 		ChattyJpaPagingItemReader<Customer> chattyJpaPagingItemReader = new ChattyJpaPagingItemReader<>();
 		chattyJpaPagingItemReader.setName("customerItemReader");
 		chattyJpaPagingItemReader.setEntityManagerFactory(entityManagerFactory);
 		chattyJpaPagingItemReader.setPageSize(PAGE_SIZE);
-		chattyJpaPagingItemReader.setQueryString("from Customer");
-
+		chattyJpaPagingItemReader.setQueryString("from Customer where firstName='Tom'");
 		return chattyJpaPagingItemReader;
 	}
 
@@ -87,6 +89,7 @@ public class MyJob {
 		return steps.get("step")
 				.<Customer, Customer>chunk(CHUNK_SIZE)
 				.reader(itemReader(null))
+				.processor(myItemProcessor)
 				.writer(itemWriter())
 				.listener(chunkListener())
 				.build();
